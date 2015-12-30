@@ -21,6 +21,10 @@ int main(int argc, char** argv)
     char recv_buf[BUFFER_SIZE];
     char ret_buf[BUFFER_SIZE];
     int len, ret;
+
+    setuid(geteuid());
+    setgid(getegid());
+
     socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in srv_addr, client_addr;
     if(socket_fd < 0)
