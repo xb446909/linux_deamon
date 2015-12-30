@@ -7,9 +7,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/un.h>
+#include <netinet/in.h>
+#include <netinet/udp.h>
 
-#define UNIX_DOMAIN "/tmp/UNIX.domain"
+#define PORT 10000
 
 #define BUFFER_SIZE 1024
 
@@ -22,20 +23,25 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    struct sockaddr_un srv_addr;
-    int socket_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    struct sockaddr_in srv_addr;
+    int socket_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if(socket_fd < 0)
     {
         perror("Can not create socket");
         return 1;
     }
 
+    char ret_buf[BUFFER_SIZE] = {0};
     int len = sizeof(srv_addr);
 
-    srv_addr.sun_family = AF_UNIX;
-    strcpy(srv_addr.sun_path, UNIX_DOMAIN);
+    srv_addr.sin_family = AF_INET;
+    srv_addr.sin_port = htons(PORT);
+    srv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     sendto(socket_fd, argv[1], strlen(argv[1]) + 1, 0,
             (struct sockaddr*)&srv_addr, len);
+    recvfrom(socket_fd, ret_buf, BUFFER_SIZE, 0,
+             (struct sockaddr*)&srv_addr, &len);
+    printf("%s", ret_buf);
     close(socket_fd);
     return 0;
 }
